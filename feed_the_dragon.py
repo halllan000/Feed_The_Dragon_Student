@@ -1,75 +1,58 @@
 import pygame, random
+from pygame.examples.go_over_there import event
 
 # Initialize pygame
 pygame.init()
 
 def make_text(font_object, text, color, background_color):
-    # TODO: Use the given font_object to create and return a rendered text Surface.
-    #       - Use font_object.render(...)
-    #       - Make sure antialias is set to True
-    #       - Use the given text, color, and background_color
-    pass # TODO: remove this when finished
+    return font_object.render(text, True, color, background_color)
 
 
 def blit(surface, item, rect):
-    # TODO: Draw (blit) the given item (Surface) onto the given surface at the given rect.
-    #       - Use the surface.blit(...) method
-    pass # TODO: remove this when finished
+    surface.blit(item, rect)
 
 
 def fill(surface, color):
-    # TODO: Fill the entire surface with the given color using surface.fill(...)
-    pass # TODO: remove this when finished
+    surface.fill(color)
 
 
 def update_display():
-    # TODO: Update the entire display so that any drawing shows up on the screen.
-    #       - Use pygame.display.update()
-    pass # TODO: remove this when finished
+    pygame.display.update()
 
 
 # Set display surface
-# TODO:
-#   - Create WINDOW_WIDTH and WINDOW_HEIGHT constants (e.g., 1000 x 400).
-#   - Use pygame.display.set_mode to create the display_surface with that size.
-#   - Set a window caption like "Feed the Dragon" using pygame.display.set_caption(...).
-
+WINDOW_WIDTH = 1000
+WINDOW_HEIGHT = 400
+pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+pygame.display.set_caption("Feed the Dragon")
 
 # Set FPS and clock
-# TODO:
-#   - Create an FPS constant (e.g., 60).
-#   - Create a clock object using pygame.time.Clock() for controlling the frame rate.
-
+FPS = 60
+Clock = pygame.time.Clock()
 
 # Set game values
-# TODO:
-#   - Create constants for:
-#       * PLAYER_STARTING_LIVES (e.g., 5)
-#       * PLAYER_VELOCITY (how fast the dragon moves up/down) (e.g., 10)
-#       * COIN_STARTING_VELOCITY (how fast the coin moves at the start) (e.g, 10)
-#       * COIN_ACCELERATION (how much faster the coin gets after each catch) (e.g., 0.5)
-#       * BUFFER_DISTANCE (how far off-screen to respawn the coin on the right) (e.g, 100)
-#   - Create variables for:
-#       * score (starting at 0)
-#       * player_lives (start at PLAYER_STARTING_LIVES)
-#       * coin_velocity (start at COIN_STARTING_VELOCITY)
+PLAYER_STARTING_LIVES = 5
+PLAYER_VELOCITY = 10
+COIN_STARTING_VELOCITY = 10
+COIN_ACCELERATION = 0.5
+BUFFER_DISTANCE = 100
 
+score = 0
+player_lives = PLAYER_STARTING_LIVES
+coin_velocity = COIN_STARTING_VELOCITY
 
 # Set colors
-# TODO:
-#   - Define color constants using RGB tuples, such as:
-#       * GREEN
-#       * DARKGREEN:  RGB value of 10, 50, 10
-#       * WHITE
-#       * BLACK
-
+GREEN = (0, 255, 0)
+DARKGREEN = (10, 50, 10)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 # Set fonts
 # TODO:
 #   - Create a font object using pygame.font.Font(...)
 #   - Use the provided font file from the assets folder (e.g., "assets/AttackGraffiti.ttf")
 #   - Choose a font size (e.g., 32)
-
+font = pygame.font.Font("assets/AttackGraffiti.ttf", 32)
 
 # Set text
 # TODO:
@@ -82,7 +65,17 @@ def update_display():
 #       * score_rect at the top-left (e.g., (10, 10))
 #       * title_rect centered horizontally at the top
 #       * lives_rect at the top-right (e.g., (WINDOW_WIDTH - 10, 10))
+score_text = make_text(font, f"Score: {score}", GREEN, DARKGREEN)
+score_rect = score_text.get_rect()
+score_rect.topleft = (10, 10)
 
+title_text = make_text(font, "Feed the Dragon", GREEN, WHITE)
+title_rect = title_text.get_rect()
+title_rect.topcenter()
+
+lives_text = make_text(font, f"Lives: {player_lives}", GREEN, DARKGREEN)
+lives_rect = lives_text.get_rect()
+lives_rect.topright = (WINDOW_WIDTH - 10, 10)
 
 # Set sounds and music
 # TODO:
@@ -92,6 +85,9 @@ def update_display():
 #   - Optionally adjust the miss sound volume using set_volume(...)
 #   - Load background music (e.g., "assets/ftd_background_music.wav") using pygame.mixer.music.load(...)
 
+catching_coin = "assets/coin_sound.wav"
+missing_coin = "assets/miss_sound.wav"
+pygame.mixer.music.load("sounds/ftd_background.wav")
 
 # Set images
 # TODO:
@@ -103,18 +99,29 @@ def update_display():
 #   - Get its rect and:
 #       * start it off to the right of the window by BUFFER_DISTANCE
 #       * give it a random y-position somewhere between a top margin (like 64) and near the bottom
+dragon = pygame.image.load("assets/dragon.png")
+dragon_rect = dragon.get_rect()
+dragon_rect.leftcenter = (WINDOW_HEIGHT/2, 32)
+
+coin = pygame.image.load("assets/coin.png")
+coin_rect = coin.get_rect()
+coin_rect.right = BUFFER_DISTANCE
+coin_rect.yposition = random.randrange(64, 350)
 
 
 # The main game loop
 # TODO:
 #   - Play the background music in a loop using pygame.mixer.music.play(...)
 #   - Create a variable named running and set it to True; this will control the main while loop.
-
+pygame.mixer.music.play()
+background_running = True
 
 def tick():
     # TODO:
     #   - Use the clock object to pause just enough so the game runs at FPS frames per second.
     #   - Call clock.tick(FPS)
+
+    Clock.tick(FPS)
     pass # TODO: remove this when finished
 
 
@@ -123,16 +130,24 @@ def is_still_running():
     #   - Get the pygame event list with pygame.event.get()
     #   - If you see an event of type pygame.QUIT, set running to False
     #     so the main loop will end and the game can quit.
+    pygame.event.get()
+    if event.type == pygame.QUIT:
+        running = False
     pass # TODO: remove this when finished
 
 
-def move_player():
+def move_player(PLAYER_VELOCITY = None):
     # TODO:
     #   - Get the current state of the keyboard using pygame.key.get_pressed()
     #   - If the up arrow is pressed and the player is not above a top limit (e.g., y > 64),
     #       move the player up by PLAYER_VELOCITY.
     #   - If the down arrow is pressed and the player is not below the bottom of the window,
     #       move the player down by PLAYER_VELOCITY.
+    pygame.key.get_pressed()
+    if pygame.key.get_pressed()[pygame.K_UP]:
+        PLAYER_VELOCITY += 10
+    if pygame.key.get_pressed()[pygame.K_DOWN]:
+        PLAYER_VELOCITY -= 10
     pass # TODO: remove this when finished
 
 
