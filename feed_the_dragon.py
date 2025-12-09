@@ -48,57 +48,27 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 # Set fonts
-# TODO:
-#   - Create a font object using pygame.font.Font(...)
-#   - Use the provided font file from the assets folder (e.g., "assets/AttackGraffiti.ttf")
-#   - Choose a font size (e.g., 32)
 font = pygame.font.Font("assets/AttackGraffiti.ttf", 32)
 
 # Set text
-# TODO:
-#   - Use your make_text function (or font.render directly) to create:
-#       * score_text showing "Score: " + current score, with green color, dark green background color
-#       * title_text showing "Feed the Dragon", with green color, white background color
-#       * lives_text showing "Lives: " + current lives, with green color, and dark green background color
-#   - Get rects for each text surface using .get_rect()
-#   - Position:
-#       * score_rect at the top-left (e.g., (10, 10))
-#       * title_rect centered horizontally at the top
-#       * lives_rect at the top-right (e.g., (WINDOW_WIDTH - 10, 10))
 score_text = make_text(font, f"Score: {score}", GREEN, DARKGREEN)
 score_rect = score_text.get_rect()
 score_rect.topleft = (10, 10)
 
 title_text = make_text(font, "Feed the Dragon", GREEN, WHITE)
 title_rect = title_text.get_rect()
-title_rect.topcenter()
+title_rect.midtop()
 
 lives_text = make_text(font, f"Lives: {player_lives}", GREEN, DARKGREEN)
 lives_rect = lives_text.get_rect()
 lives_rect.topright = (WINDOW_WIDTH - 10, 10)
 
 # Set sounds and music
-# TODO:
-#   - Load sound effects for:
-#       * catching a coin (e.g., "assets/coin_sound.wav")
-#       * missing a coin (e.g., "assets/miss_sound.wav")
-#   - Optionally adjust the miss sound volume using set_volume(...)
-#   - Load background music (e.g., "assets/ftd_background_music.wav") using pygame.mixer.music.load(...)
-
 catching_coin = "assets/coin_sound.wav"
-missing_coin = "assets/miss_sound.wav"
+miss_coin = "assets/miss_sound.wav"
 pygame.mixer.music.load("sounds/ftd_background.wav")
 
 # Set images
-# TODO:
-#   - Load the player image (dragon) from "assets/dragon_right.png" using pygame.image.load(...)
-#   - Get its rect with .get_rect() and:
-#       * place it near the left side of the screen
-#       * center it vertically in the window
-#   - Load the coin image from "assets/coin.png"
-#   - Get its rect and:
-#       * start it off to the right of the window by BUFFER_DISTANCE
-#       * give it a random y-position somewhere between a top margin (like 64) and near the bottom
 dragon = pygame.image.load("assets/dragon.png")
 dragon_rect = dragon.get_rect()
 dragon_rect.leftcenter = (WINDOW_HEIGHT/2, 32)
@@ -110,48 +80,32 @@ coin_rect.yposition = random.randrange(64, 350)
 
 
 # The main game loop
-# TODO:
-#   - Play the background music in a loop using pygame.mixer.music.play(...)
-#   - Create a variable named running and set it to True; this will control the main while loop.
-pygame.mixer.music.play()
-background_running = True
+pygame.mixer.music.play("sounds/ftd_background_music.wav")
+running = True
 
 def tick():
-    # TODO:
-    #   - Use the clock object to pause just enough so the game runs at FPS frames per second.
-    #   - Call clock.tick(FPS)
-
     Clock.tick(FPS)
-    pass # TODO: remove this when finished
 
 
 def is_still_running():
-    # TODO:
-    #   - Get the pygame event list with pygame.event.get()
-    #   - If you see an event of type pygame.QUIT, set running to False
-    #     so the main loop will end and the game can quit.
-    pygame.event.get()
-    if event.type == pygame.QUIT:
-        running = False
-    pass # TODO: remove this when finished
+    global running
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.QUIT:
+            running = False
+
 
 
 def move_player(PLAYER_VELOCITY = None):
-    # TODO:
-    #   - Get the current state of the keyboard using pygame.key.get_pressed()
-    #   - If the up arrow is pressed and the player is not above a top limit (e.g., y > 64),
-    #       move the player up by PLAYER_VELOCITY.
-    #   - If the down arrow is pressed and the player is not below the bottom of the window,
-    #       move the player down by PLAYER_VELOCITY.
     pygame.key.get_pressed()
     if pygame.key.get_pressed()[pygame.K_UP]:
         PLAYER_VELOCITY += 10
     if pygame.key.get_pressed()[pygame.K_DOWN]:
         PLAYER_VELOCITY -= 10
-    pass # TODO: remove this when finished
 
 
 def handle_coin():
+    global coin_velocity, player_lives, miss_coin
     # TODO:
     #   - Move the coin to the left each frame by subtracting coin_velocity from coin_rect.x.
     #   - If the coin passes off the left side of the screen (coin_rect.x < 0):
@@ -160,6 +114,11 @@ def handle_coin():
     #       * Reset the coin's position:
     #           - x: WINDOW_WIDTH + BUFFER_DISTANCE
     #           - y: a random integer between a top margin (e.g., 64) and near the bottom edge.
+    coin_velocity -= coin_rect.x
+    if coin_rect.x < 0:
+        player_lives -= 1
+        miss_coin.play()
+
     pass # TODO: remove this when finished
 
 
