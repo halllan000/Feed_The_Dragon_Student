@@ -1,8 +1,8 @@
 import pygame, random
-from pygame.examples.go_over_there import event
 
 # Initialize pygame
 pygame.init()
+
 
 def make_text(font_object, text, color, background_color):
     return font_object.render(text, True, color, background_color)
@@ -23,7 +23,7 @@ def update_display():
 # Set display surface
 WINDOW_WIDTH = 1000
 WINDOW_HEIGHT = 400
-pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Feed the Dragon")
 
 # Set FPS and clock
@@ -57,31 +57,38 @@ score_rect.topleft = (10, 10)
 
 title_text = make_text(font, "Feed the Dragon", GREEN, WHITE)
 title_rect = title_text.get_rect()
-title_rect.midtop()
+title_rect.midtop = (WINDOW_WIDTH / 2, WINDOW_HEIGHT - 350)
 
 lives_text = make_text(font, f"Lives: {player_lives}", GREEN, DARKGREEN)
 lives_rect = lives_text.get_rect()
 lives_rect.topright = (WINDOW_WIDTH - 10, 10)
 
+game_over_text = make_text(font, "GAMEOVER", GREEN, DARKGREEN)
+game_over_rect = game_over_text.get_rect()
+game_over_rect.center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+
+continue_text = make_text(font, "Press any key to play again", GREEN, DARKGREEN)
+continue_rect = continue_text.get_rect()
+continue_rect.center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 32)
+
 # Set sounds and music
-catching_coin = "assets/coin_sound.wav"
-miss_coin = "assets/miss_sound.wav"
-pygame.mixer.music.load("sounds/ftd_background.wav")
+catching_coin = pygame.mixer.Sound("assets/coin_sound.wav")
+miss_coin = pygame.mixer.Sound("assets/miss_sound.wav")
 
 # Set images
-dragon = pygame.image.load("assets/dragon.png")
+dragon = pygame.image.load("assets/dragon_right.png")
 dragon_rect = dragon.get_rect()
-dragon_rect.leftcenter = (WINDOW_HEIGHT/2, 32)
+dragon_rect.leftcenter = (WINDOW_HEIGHT / 2, 32)
 
 coin = pygame.image.load("assets/coin.png")
 coin_rect = coin.get_rect()
 coin_rect.right = BUFFER_DISTANCE
 coin_rect.yposition = random.randrange(64, 350)
 
-
 # The main game loop
-pygame.mixer.music.play("sounds/ftd_background_music.wav")
+pygame.mixer.music.play()
 running = True
+
 
 def tick():
     Clock.tick(FPS)
@@ -95,52 +102,38 @@ def is_still_running():
             running = False
 
 
-
-def move_player(PLAYER_VELOCITY = None):
+def move_player(PLAYER_VELOCITY=None):
     pygame.key.get_pressed()
-    if pygame.key.get_pressed()[pygame.K_UP]:
+    if pygame.key.get_pressed()[pygame.K_UP] and WINDOW_HEIGHT > 64:
         PLAYER_VELOCITY += 10
-    if pygame.key.get_pressed()[pygame.K_DOWN]:
+    if pygame.key.get_pressed()[pygame.K_DOWN] and WINDOW_HEIGHT > WINDOW_HEIGHT - 32:
         PLAYER_VELOCITY -= 10
 
 
 def handle_coin():
-    global coin_velocity, player_lives, miss_coin
-    # TODO:
-    #   - Move the coin to the left each frame by subtracting coin_velocity from coin_rect.x.
-    #   - If the coin passes off the left side of the screen (coin_rect.x < 0):
-    #       * Subtract 1 from player_lives.
-    #       * Play the miss sound.
-    #       * Reset the coin's position:
-    #           - x: WINDOW_WIDTH + BUFFER_DISTANCE
-    #           - y: a random integer between a top margin (e.g., 64) and near the bottom edge.
-    coin_velocity -= coin_rect.x
+    global player_lives
+    coin_rect.x -= coin_velocity
     if coin_rect.x < 0:
         player_lives -= 1
         miss_coin.play()
-
-    pass # TODO: remove this when finished
+        coin_rect.x = WINDOW_WIDTH + BUFFER_DISTANCE
+        coin_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
 
 
 def handle_collisions():
-    # TODO:
-    #   - Check if the player_rect and coin_rect are colliding using colliderect(...)
-    #   - If they collide:
-    #       * Increase score by 1
-    #       * Play the coin sound
-    #       * Increase coin_velocity by COIN_ACCELERATION
-    #       * Reset the coin's position:
-    #           - x: WINDOW_WIDTH + BUFFER_DISTANCE
-    #           - y: random integer between the same top and bottom margins
-    pass # TODO: remove this when finished
+    global score, coin_velocity
+    if dragon_rect.colliderect(coin_rect):
+        score += 1
+        catching_coin.play()
+        coin_velocity += COIN_ACCELERATION
+        coin_rect.x = WINDOW_WIDTH + BUFFER_DISTANCE
+        coin_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
 
 
 def update_hud():
-    # TODO:
-    #   - Re-create score_text and lives_text each frame using make_text(...),
-    #     so they show the updated score and lives values.
-    #   - Remember to use the same font and colors (GREEN and DARKGREEN).
-    pass # TODO: remove this when finished
+    make_text(score_text, "Score: " + str(score), GREEN, DARKGREEN)
+    make_text(lives_text, "Lives: " + str(player_lives), GREEN, DARKGREEN)
+
 
 
 def game_over_check():
@@ -160,7 +153,20 @@ def game_over_check():
     #                   · Exit the pause loop (resume game)
     #               + If the player clicks the window close button (QUIT):
     #                   · Set running to False and exit the pause loop so the game can end.
-    pass # TODO: remove this when finished
+    global score, player_lives, coin_velocity
+    if player_lives > 0:
+        make_text(game_over_text, "press any key to play again", GREEN, DARKGREEN)
+        update_display()
+        pygame.mixer.music.play(False)
+        is_paused = True
+        while is_paused:
+            pygame.key.get_pressed()[pygame.K_DOWN]:
+            score = 0
+            player_lives = PLAYER_STARTING_LIVES
+            coin_velocity = COIN_STARTING_VELOCITY
+            pygame.mixer.music.play(True)
+            is_paused = True
+
 
 
 def update_screen():
