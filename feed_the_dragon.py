@@ -78,7 +78,7 @@ miss_coin = pygame.mixer.Sound("assets/miss_sound.wav")
 # Set images
 dragon = pygame.image.load("assets/dragon_right.png")
 dragon_rect = dragon.get_rect()
-dragon_rect.leftcenter = (WINDOW_HEIGHT / 2, 32)
+dragon_rect.left = (32, WINDOW_HEIGHT // 2)
 
 coin = pygame.image.load("assets/coin.png")
 coin_rect = coin.get_rect()
@@ -157,15 +157,15 @@ def game_over_check():
     if player_lives > 0:
         make_text(game_over_text, "press any key to play again", GREEN, DARKGREEN)
         update_display()
-        pygame.mixer.music.play(False)
+        pygame.mixer.music.stop()
         is_paused = True
         while is_paused:
-            pygame.key.get_pressed()[pygame.K_DOWN]:
-            score = 0
-            player_lives = PLAYER_STARTING_LIVES
-            coin_velocity = COIN_STARTING_VELOCITY
-            pygame.mixer.music.play(True)
-            is_paused = True
+            if pygame.key.get_pressed()[pygame.K_DOWN]:
+                score = 0
+                player_lives = PLAYER_STARTING_LIVES
+                coin_velocity = COIN_STARTING_VELOCITY
+                pygame.mixer.music.play()
+                is_paused = False
 
 
 
@@ -177,20 +177,17 @@ def update_screen():
     #   - Draw a horizontal line across the screen near the top to separate the HUD from the play area.
     #   - Draw the player image and the coin image at their rect positions using your blit(...) helper.
     #   - Finally, call update_display() so that everything appears on the screen.
+    display_surface.fill(BLACK)
+    score_text.blit(display_surface)
+    title_text.blit(display_surface)
+    lives_text.blit(display_surface)
+
+
+    update_display()
     pass
 
 
 while running:
-    # Main game loop steps:
-    #   1. Handle quit events.
-    #   2. Move the player based on keyboard input.
-    #   3. Move the coin and handle misses.
-    #   4. Check for collisions between player and coin.
-    #   5. Update the HUD text to match the current score and lives.
-    #   6. Check if the game is over and either reset or quit.
-    #   7. Draw everything on the screen.
-    #   8. Tick the clock to control the frame rate.
-
     is_still_running()
     move_player()
     handle_coin()
